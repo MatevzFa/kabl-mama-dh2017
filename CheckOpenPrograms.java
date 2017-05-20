@@ -7,7 +7,7 @@ public class CheckOpenPrograms {
         System.out.println(isProcess());
     }
 
-    public static boolean isProcess() {
+    public static int isProcess() {
         try {
             String line;
 
@@ -31,6 +31,7 @@ public class CheckOpenPrograms {
 
             int num_good = 0;
             int num_bad = 0;
+            boolean chrome = false;
             while ((line = input.readLine()) != null) {
                 //System.out.println(line);
                 for (int i = 0; i < good_programs.length; i++) {
@@ -47,10 +48,31 @@ public class CheckOpenPrograms {
                         num_bad++;
                     }
                 }
+                if (line.contains("chrome")) {
+                    chrome = true;
+                }
             }
             input.close();
             System.out.println("---> Good: " + num_good + ", bad: " + num_bad);
-            return (num_good <= 2 && num_bad >= 2);
+
+            /**
+                return | numgood <= 2 AND numbad >= 2    chrome
+                    0  |               0                   0
+                    1  |               0                   1 
+                    2  |               1                   0
+                    3  |               1                   1
+             */
+            boolean goodBad = (num_good <= 2 && num_bad >= 2);
+            int retval = 0;
+            if (goodBad && chrome) {
+                retval = 3;
+            } else if (goodbad && !chrome) {
+                retval = 2;
+            } else if (!goodBad && chrome) {
+                retval = 1;
+            }
+            return retval;
+            
         } catch (Exception err) {
             err.printStackTrace();
             return false;
