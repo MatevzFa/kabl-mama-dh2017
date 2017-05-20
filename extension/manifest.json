@@ -5,11 +5,13 @@
     "description": "Prevents bad habits",
     "version": "0.0.0",
     "permissions": [
-        "tabs"
+        "tabs",
+        "http://127.0.0.1/*"
     ],
     "background": {
         "scripts": [
-            "script.js"
+            "script.js",
+            "jquery.min.js"
         ]
     }
 }
