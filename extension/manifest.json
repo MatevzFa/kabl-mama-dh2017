@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "name": "DH 2017",
+    "author": "KABL MAMA",
+    "description": "Prevents bad habits",
+    "version": "0.0.0",
+    "permissions": [
+        "tabs"
+    ],
+    "background": {
+        "scripts": [
+            "script.js"
+        ]
+    }
+}
