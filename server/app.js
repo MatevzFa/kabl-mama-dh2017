@@ -2,7 +2,6 @@
 if (!process.env.PORT)
     process.env.PORT = 8080;
 
-
 /**
  * Init
  */
@@ -11,11 +10,13 @@ const urlParser = require('url');
 const bodyParser = require('body-parser');
 const badUrls = require('./bad-urls.json').join('|');
 
-
 const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+/**
+ * Server
+ */
 app.get('/', (req, res) => {
     res.send('Hello world!');
 });
