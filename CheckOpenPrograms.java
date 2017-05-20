@@ -66,7 +66,7 @@ public class CheckOpenPrograms {
             int retval = 0;
             if (goodBad && chrome) {
                 retval = 3;
-            } else if (goodbad && !chrome) {
+            } else if (goodBad && !chrome) {
                 retval = 2;
             } else if (!goodBad && chrome) {
                 retval = 1;
@@ -75,7 +75,7 @@ public class CheckOpenPrograms {
             
         } catch (Exception err) {
             err.printStackTrace();
-            return false;
+            return -1;
         }
     }
 }
