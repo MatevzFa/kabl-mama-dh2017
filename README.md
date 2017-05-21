@@ -14,7 +14,7 @@ The Server is built with [NodeJS](https://nodejs.org/). It's a very simple Expre
 * POST for sending data about opened tabs and
 * POST for signaling that the given task has been completed.
 
-When it recieves a POST request from the (Extension)[#-google-chrome-extension] it checks for tabs which suggest that the user is wasting time (by e.g. browsing 9gag, reddit, facebook etc.). Domains that are considered waste of time are stored in [bad-urls.json](server/bad-urls.json)
+When it recieves a POST request from the (Extension)[#google-chrome-extension] it checks for tabs which suggest that the user is wasting time (by e.g. browsing 9gag, reddit, facebook etc.). Domains that are considered waste of time are stored in [bad-urls.json](server/bad-urls.json)
 
 ## The Android App
 When the user gets locked out of his PC they use this app to regain access to the PC. This is done by visiting one of the locations nearby (which were set by the user). Once you get close enough to the chosen location the user taps the 'Check In' button in the app and thus informs the server that the task has been completed.
