@@ -1,15 +1,18 @@
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
+//import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -34,7 +37,7 @@ public class MakeMe {
 		// Caka na primerne pogoje za sprozitev blokade
 		while(true){
 			// Ce so vsi trije pogoji izpolnjeni sprozi blokado
-			if(isHour() && vreme && isProcess() && Blokada.readServer()){
+			if(isHour() && vreme && isProcess()){
 				// Prikaze obvestilo o 15 minutnem odstevanju - v novm thread-u
 				(new Thread(new Poziv())).start();
 				// Zaspi za 15 minut
@@ -83,8 +86,104 @@ public class MakeMe {
 	
 	// Funkcija vrne true, ce je delo nepomembno
 	public static boolean isProcess(){
-		return true;
+		int isP = checkExe();
+		// nic ni odprto
+		if (isP == 0)return false;
+		if (isP > 1) return true;
+		
+		String stream=null;
+    	try{
+    		stream = getIn();
+    	}
+    	catch(Exception e){
+    		Thread.currentThread().interrupt();
+    	}
+    	return stream.equals("true");
 	}
+	
+	// Funkcija vrne stream za tabe-chrom extension
+	public static String getIn() throws Exception {
+        URL str = new URL("https://kabl-mama-dh2071-matevzfa.c9users.io/existbadtabs");
+        URLConnection con = str.openConnection();
+        
+        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine=in.readLine();
+
+        in.close();
+        return inputLine;
+    }
+	
+	public static int checkExe(){
+		try {
+            String line;
+
+            Process p = null;
+            try {
+                System.out.println(System.getProperty("os.name"));
+                if (System.getProperty("os.name").equals("Linux")) {
+                    p = Runtime.getRuntime().exec("ps -e -Ao '%a'");
+                } else {
+                    p = Runtime.getRuntime().exec(System.getenv("windir") +"\\system32\\"+"tasklist.exe");
+                }
+            } catch (Exception e) {
+                ;
+            }
+
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+            String[] good_programs = new String[] {"atom", "eclipse", "word", "bash"};
+            String[] bad_programs = new String[] {"vlc"};
+
+            int num_good = 0;
+            int num_bad = 0;
+            boolean chrome = false;
+            while ((line = input.readLine()) != null) {
+                //System.out.println(line);
+                for (int i = 0; i < good_programs.length; i++) {
+                    if (line.contains(good_programs[i])) {
+                        //System.out.println("---> Good one!");
+                        good_programs[i] = "*** Ime procesa, ki zagotovo ne obstaja.";
+                        num_good++;
+                    }
+                }
+                for (int i = 0; i < bad_programs.length; i++) {
+                    if (line.contains(bad_programs[i])) {
+                        //System.out.println("---> Bad one!");
+                        bad_programs[i] = "*** Ime procesa, ki zagotovo ne obstaja.";
+                        num_bad++;
+                    }
+                }
+                if (line.contains("chrome")) {
+                    chrome = true;
+                }
+            }
+            input.close();
+            System.out.println("---> Good: " + num_good + ", bad: " + num_bad);
+
+            /**
+                return | numgood <= 1 AND numbad >= 2    chrome
+                    0  |               0                   0
+                    1  |               0                   1 
+                    2  |               1                   0
+                    3  |               1                   1
+             */
+            boolean goodBad = (num_good <= 1 && num_bad >= 2);
+            int retval = 0;
+            if (goodBad && chrome) {
+                retval = 3;
+            } else if (goodBad && !chrome) {
+                retval = 2;
+            } else if (!goodBad && chrome) {
+                retval = 1;
+            }
+            return retval;
+            
+        } catch (Exception err) {
+            err.printStackTrace();
+            return -1;
+        }
+    }
 }
 
 /*
@@ -100,7 +199,7 @@ class Poziv implements Runnable{
     public static void createFramePoziv(){
     	//Create the frame.
     	JFrame poziv = new JFrame("Poziv");
-
+    	poziv.toFront();
     	//What happens when the frame closes
     	poziv.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     	
@@ -113,6 +212,7 @@ class Poziv implements Runnable{
     	//5. Show it.
     	poziv.setVisible(true);
     	poziv.setLocationRelativeTo(null);
+    	
     }
 }
 
@@ -131,7 +231,7 @@ class Blokada implements Runnable{
 			    Thread.currentThread().interrupt();
 			}
     		//bere s streznika + ce dobi pozitiven token signal to javi ocetu-thredu
-    		if(!readServer()){
+    		if(readServer()){
     			synchronized(this){
                     notify();
                 }
@@ -146,7 +246,8 @@ class Blokada implements Runnable{
     public static void createFrameBlokada(){
     	//Create the frame.
     	blokada = new JFrame("Blokada");
-
+    	blokada.setResizable(false);
+    	blokada.setUndecorated(true);
     	//What happens when the frame closes
     	blokada.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     	
@@ -154,11 +255,14 @@ class Blokada implements Runnable{
     	JLabel label = new JLabel("BLOKADA", SwingConstants.CENTER);
     	blokada.add(label);
     	//4. Size the frame.
-    	blokada.setSize(new Dimension(1600, 900));
+    	blokada.setExtendedState(JFrame.MAXIMIZED_BOTH);
 
     	//5. Show it.
+    	
     	blokada.setVisible(true);
     	blokada.setLocationRelativeTo(null);
+    	blokada.setAlwaysOnTop (true);
+
     }
     
     
@@ -172,10 +276,10 @@ class Blokada implements Runnable{
     	catch(Exception e){
     		Thread.currentThread().interrupt();
     	}
-    	return stream.equals("true");
+    	return stream.equals("continue");
     }
     public static String getIn() throws Exception {
-        URL str = new URL("https://kabl-mama-dh2071-matevzfa.c9users.io/existbadtabs");
+        URL str = new URL("https://kabl-mama-dh2071-matevzfa.c9users.io/cancontinue");
         URLConnection con = str.openConnection();
         
         BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
