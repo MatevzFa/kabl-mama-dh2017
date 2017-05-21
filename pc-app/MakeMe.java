@@ -7,6 +7,7 @@ import javax.swing.UIManager;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
@@ -42,7 +43,7 @@ public class MakeMe {
 				(new Thread(new Poziv())).start();
 				// Zaspi za 15 minut
 				try {
-				    Thread.sleep(5000);	// CHANGED FROM 15-1
+				    Thread.sleep(15000);	// CHANGED FROM 15-1
 				} catch(InterruptedException ex) {
 				    Thread.currentThread().interrupt();
 				}
@@ -98,6 +99,7 @@ public class MakeMe {
     	catch(Exception e){
     		Thread.currentThread().interrupt();
     	}
+    	System.out.println((stream.equals("true") ? "Bad tabs exist" : "Bad tabs don't exist"));
     	return stream.equals("true");
 	}
 	
@@ -204,14 +206,15 @@ class Poziv implements Runnable{
     	poziv.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
     	
     	//Create components and put them in the frame.
-    	JLabel label = new JLabel("IMAS 15 MINUT DO BLOKADE", SwingConstants.CENTER);
+    	JLabel label = new JLabel("You have 15 minutes to stop waisting your time.", SwingConstants.CENTER);
+    	label.setFont(new Font("Serif", Font.BOLD,55));
     	poziv.add(label);
     	//4. Size the frame.
-    	poziv.setSize(new Dimension(400, 300));
-
+    	poziv.setSize(new Dimension(1200, 500));
     	//5. Show it.
     	poziv.setVisible(true);
     	poziv.setLocationRelativeTo(null);
+    	poziv.setAlwaysOnTop(true);
     	
     }
 }
@@ -252,7 +255,8 @@ class Blokada implements Runnable{
     	blokada.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
     	
     	//Create components and put them in the frame.
-    	JLabel label = new JLabel("BLOKADA", SwingConstants.CENTER);
+    	JLabel label = new JLabel("BLOCKED", SwingConstants.CENTER);
+    	label.setFont(new Font("Serif", Font.BOLD,95));
     	blokada.add(label);
     	//4. Size the frame.
     	blokada.setExtendedState(JFrame.MAXIMIZED_BOTH);
