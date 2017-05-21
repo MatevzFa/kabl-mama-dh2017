@@ -30,7 +30,7 @@ app.get('/existbadtabs', (req, res) => {
     } else {
         res.send('false');
     }
-})
+});
 
 /* RegEx for matching bad URLs */
 var urlPattern = '(http|https)\://.*?\.(' + badUrls + ')/';
