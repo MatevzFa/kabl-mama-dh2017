@@ -23,23 +23,35 @@ app.get('/', (req, res) => {
 
 var existBadTabs = false;
 
-/* GET route for sending true/false based on latest tab POST */
-app.get('/existbadtabs', (req, res) => {
-    if (existBadTabs) {
-        res.send('true');
-    } else {
-        res.send('false');
-    }
-});
-
-/* RegEx for matching bad URLs */
-var urlPattern = '(http|https)\://.*?\.(' + badUrls + ')/';
-
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
 });
+
+/* GET route for sending true/false based on latest tab POST */
+app.get('/existbadtabs', (req, res) => {
+    if (existBadTabs) {
+        res.send('true');
+        console.log('bad-tabs-exist ' + existBadTabs);
+        taskCompleted = false;
+        existBadTabs = false;
+    } else {
+        res.send('false');
+    }
+});
+
+app.get('/cancontinue', (req, res) => {
+    if (taskCompleted) {
+        res.send('continue');
+        taskCompleted = false;
+    } else {
+        res.send('block');
+    }
+})
+
+/* RegEx for matching bad URLs */
+var urlPattern = '(http|https)\://.*?\.?(' + badUrls + ')/';
 
 var regex = new RegExp(urlPattern);
 /* POST route for recieving data about opened tabs */
@@ -48,19 +60,19 @@ app.post('/openedtabs', (req, res) => {
     var badTabs = openTabs.filter((tab) => {
         return regex.exec(tab) !== null;
     });
+    console.log('Bad: ' + badTabs);
     existBadTabs = badTabs.length > 0;
     console.log(existBadTabs);
     res.end();
 });
 
-var taskPending = false;
+
 var taskCompleted = false;
 /* POST route for task completed */
 app.post('/taskcompleted', (req, res) => {
     taskCompleted = true;
-    taskPending = false;
-    console.log(taskPending);
-    console.log(taskCompleted);
+    console.log('Completed task');
+    res.end();
 });
 
 app.listen(process.env.PORT, () => {
