@@ -22,7 +22,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
@@ -33,10 +32,8 @@ import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.AsyncHttpResponseHandler;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 import cz.msebera.android.httpclient.Header;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback, LocationListener {
 
@@ -81,7 +78,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     locationManager = (LocationManager) getBaseContext().getSystemService(LOCATION_SERVICE);
                     locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, MainActivity.this);
                 } catch (SecurityException e) {
-                    Log.d("MY APP", e.getMessage());
+                    Log.d("MakeMe", e.getMessage());
                 }
                 for(Marker m : markers) m.setVisible(false);
                 for(Circle c : circles) c.setVisible(true);
@@ -138,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 String[] ll = loc.split(",");
                 LatLng pos = new LatLng(Double.parseDouble(ll[0]), Double.parseDouble(ll[1]));
                 markers.add(mMap.addMarker(new MarkerOptions().position(pos)));
-                circles.add(mMap.addCircle(new CircleOptions().center(pos).radius(100).strokeColor(R.color.colorPrimaryDark).fillColor(R.color.colorPrimary).visible(false)));
+                circles.add(mMap.addCircle(new CircleOptions().center(pos).radius(100).strokeColor(ContextCompat.getColor(getBaseContext(), R.color.circleBorder)).strokeWidth(5).fillColor(ContextCompat.getColor(getBaseContext(), R.color.circleFill)).visible(false)));
             }
         }
     }
@@ -178,6 +175,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         loadLocations();
+        if(!editMode) {
+            showCircles();
+            hideMarkers();
+        } else {
+            hideCircles();
+            showMarkers();
+        }
 
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(46.0236862,14.6028584), 9f));
 
@@ -186,7 +190,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onMapClick(LatLng latLng) {
                 if(editMode) {
                     markers.add(mMap.addMarker(new MarkerOptions().position(latLng)));
-                    circles.add(mMap.addCircle(new CircleOptions().center(latLng).radius(100).strokeColor(R.color.colorPrimaryDark).fillColor(R.color.colorPrimary).visible(false)));
+                    circles.add(mMap.addCircle(new CircleOptions().center(latLng).radius(100).strokeColor(ContextCompat.getColor(getBaseContext(), R.color.circleBorder)).strokeWidth(5).fillColor(ContextCompat.getColor(getBaseContext(), R.color.circleFill)).visible(false)));
                 }
             }
         });
@@ -204,6 +208,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                             }
                         }
                         marker.remove();
+                        return true;
                     }
                 }
                 return false;
@@ -213,43 +218,35 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public void onLocationChanged(Location location) {
-        if(mMap != null) {
-            LatLng loc = new LatLng(location.getLatitude(), location.getLongitude());
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(loc, 15f));
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-            if(currentPosition == null) {
-                currentPosition = mMap.addMarker(new MarkerOptions().position(loc).icon(BitmapDescriptorFactory
-                        .defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
-
-                if(!checkingPosition) currentPosition.setVisible(false);
-                else currentPosition.setVisible(true);
-
-            } else {
-
-                if(!checkingPosition) currentPosition.setVisible(false);
-                else currentPosition.setVisible(true);
-
-                currentPosition.setPosition(loc);
-            }
+        if(currentPosition == null) {
+            currentPosition = mMap.addMarker(new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)));
+        } else {
+            currentPosition.setPosition(latLng);
         }
+
+        if(mMap != null) {
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 15f));
+        }
+
         if(checkingPosition) {
             float[] distance = new float[2];
             boolean anyInside = false;
+
             for(Circle circle : circles) {
                 Location.distanceBetween(currentPosition.getPosition().latitude, currentPosition.getPosition().longitude,
                         circle.getCenter().latitude, circle.getCenter().longitude, distance);
-
-                if (distance[0] > circle.getRadius()) {
-                    //Toast.makeText(getBaseContext(), "Outside", Toast.LENGTH_LONG).show();
-                } else {
+                if (distance[0] <= circle.getRadius()) {
                     anyInside = true;
-                    //Toast.makeText(getBaseContext(), "Inside", Toast.LENGTH_LONG).show();
+                    break;
                 }
             }
+
             if (anyInside) {
-                Toast.makeText(getBaseContext(), "Inside", Toast.LENGTH_LONG).show();
-                //saves.edit().putBoolean("checked", true).apply();
-                imageViewChecked.setImageDrawable(ContextCompat.getDrawable(getBaseContext(), R.drawable.ic_check_box_black_24dp));
+                Toast.makeText(getBaseContext(), "Task completed.", Toast.LENGTH_LONG).show();
+
+                imageViewChecked.setImageDrawable(ContextCompat.getDrawable(getBaseContext(), R.drawable.ic_check_black_24dp));
                 httpClient.post(this.getBaseContext(), "https://kabl-mama-dh2071-matevzfa.c9users.io/taskcompleted", null, new AsyncHttpResponseHandler() {
                     @Override
                     public void onSuccess(int statusCode, Header[] headers, byte[] responseBody) {
@@ -263,7 +260,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
 
             } else {
-                Toast.makeText(getBaseContext(), "Outside", Toast.LENGTH_LONG).show();
+                Toast.makeText(getBaseContext(), "Not near any location.", Toast.LENGTH_LONG).show();
             }
 
         }

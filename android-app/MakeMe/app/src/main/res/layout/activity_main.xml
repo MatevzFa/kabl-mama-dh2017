@@ -22,8 +22,7 @@
             android:id="@+id/imageViewChecked"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_weight="1"
-            app:srcCompat="@drawable/ic_check_box_outline_blank_black_24dp" />
+            android:layout_weight="1" />
 
         <ToggleButton
             android:id="@+id/toggleButtonEditLocations"
