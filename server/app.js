@@ -5,12 +5,12 @@ if (!process.env.PORT)
 /**
  * Init
  */
-const express = require('express');
-const urlParser = require('url');
-const bodyParser = require('body-parser');
-const badUrls = require('./bad-urls.json').join('|');
+var express = require('express');
+var urlParser = require('url');
+var bodyParser = require('body-parser');
+var badUrls = require('./bad-urls.json').join('|');
 
-const app = express();
+var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
     res.send('Hello world!');
 });
 
-let existBadTabs = false;
+var existBadTabs = false;
 
 /* GET route for sending true/false based on latest tab POST */
 app.get('/existbadtabs', (req, res) => {
@@ -30,21 +30,37 @@ app.get('/existbadtabs', (req, res) => {
     } else {
         res.send('false');
     }
-})
+});
 
 /* RegEx for matching bad URLs */
-let urlPattern = '(http|https)\://.*?\.(' + badUrls + ')/';
+var urlPattern = '(http|https)\://.*?\.(' + badUrls + ')/';
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
 
 var regex = new RegExp(urlPattern);
 /* POST route for recieving data about opened tabs */
 app.post('/openedtabs', (req, res) => {
-    let openTabs = req.body.tabs;
-    let badTabs = openTabs.filter((tab) => {
+    var openTabs = req.body.tabs;
+    var badTabs = openTabs.filter((tab) => {
         return regex.exec(tab) !== null;
     });
     existBadTabs = badTabs.length > 0;
-    // console.log(existBadTabs);
+    console.log(existBadTabs);
     res.end();
+});
+
+var taskPending = false;
+var taskCompleted = false;
+/* POST route for task completed */
+app.post('/taskcompleted', (req, res) => {
+    taskCompleted = true;
+    taskPending = false;
+    console.log(taskPending);
+    console.log(taskCompleted);
 });
 
 app.listen(process.env.PORT, () => {
