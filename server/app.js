@@ -53,6 +53,16 @@ app.post('/openedtabs', (req, res) => {
     res.end();
 });
 
+var taskPending = false;
+var taskCompleted = false;
+/* POST route for task completed */
+app.post('/taskcompleted', (req, res) => {
+    taskCompleted = true;
+    taskPending = false;
+    console.log(taskPending);
+    console.log(taskCompleted);
+});
+
 app.listen(process.env.PORT, () => {
     console.log('Server up @ %d', process.env.PORT);
 });
